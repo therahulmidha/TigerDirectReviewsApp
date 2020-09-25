@@ -4,7 +4,7 @@
   "description": "App containing api to crawl reviews from website Tigerdirect",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon index"
   },
   "keywords": [
     "nodejs",
@@ -15,6 +15,11 @@
   "dependencies": {
     "config": "^3.3.1",
     "express": "^4.17.1",
-    "joi": "^17.2.1"
+    "joi": "^17.2.1",
+    "phantom": "^6.3.0"
+  },
+  "devDependencies": {
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.4"
   }
 }
