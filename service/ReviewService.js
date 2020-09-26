@@ -13,68 +13,113 @@ async function getReviews(url) {
 
         // open the url
         const pageOpenResult = await page.open(url);
-        
+
         // If url was invalid, page couldn't be opened
-        console.log(pageOpenResult)
         if (pageOpenResult !== "success") {
             await page.close();
             await instance.exit();
             return 'Unable to connect to the provided url';
         }
 
-        // Check if error page attributes present on opening the page
+        // check if reviews exist on the page
         const isInvalidPage = await page.evaluate(function () {
-            return document.querySelector('[title="Go To Homepage"]') != null;
+            // return document.querySelector('[title="Go To Homepage"]') != null;
+            return document.querySelector('#reviewtab') == null;
         });
 
-        // tigerdirect has no valid page for the url
+        // No reviews found on the requested page
         if (isInvalidPage) {
             await page.close();
             await instance.exit();
-            return 'Requested Page Does not exists';
+            return 'No reviews found on the requested page';
         }
 
-        // Fetch the reviews
-        const noOfReviews = await page.evaluate(function () {
-            return document.querySelectorAll('#customerReviews > .review').length;
+        // click the Reviews tab
+        await page.evaluate(function () {
+            document.querySelector('#reviewtab > a').click();
         });
 
-        // Iterate through the reviews section and create a review object
+        // Reviews array to store all retrieved reviews
         const reviews = [];
-        for (let i = 0; i < noOfReviews; i++) {
-            let obj = {};
-            let commentObj = {};
 
-            commentObj.title = await page.evaluate(function (index) {
-                return document.querySelectorAll('#customerReviews > .review > .rightCol > blockquote')[index].querySelector('h6').textContent;
-            }, i);
+        // Variable for iterating through all reviews listed on website in paginated as 5 reviews per page
+        let nextButtonExists = false;
 
-            commentObj.text = await page.evaluate(function (index) {
-                return document.querySelectorAll('#customerReviews > .review > .rightCol > blockquote')[index].querySelector('p').textContent;
-            }, i);
+        // Variable to keep url of next page to be opened after each page's review processing
+        let changedUrl = null;
 
-            obj.comment = commentObj;
+        // do-while lopp to fetch reviews in sets of 5 reviews per page
+        do {
 
-            obj.rating = await page.evaluate(function (index) {
-                return document.querySelectorAll('#customerReviews > .review')[index].querySelector(".leftCol > .itemReview > dd > .itemRating > strong").textContent;
-            }, i);
+            // If changedUrl is not null, open this url
+            if (changedUrl) {
+                await page.open(changedUrl);
+            }
 
-            obj.review_date = await page.evaluate(function (index) {
-                return document.querySelectorAll('#customerReviews > .review')[index].querySelector(".leftCol > .reviewer").getElementsByTagName('dd')[1].textContent;
-            }, i);
+            // Fetch the reviews count
+            let noOfReviewsOnCurrentPage = await page.evaluate(function () {
+                return document.querySelectorAll('#customerReviews > .review').length;
+            });
 
-            obj.reviewer = await page.evaluate(function (index) {
-                return document.querySelectorAll('#customerReviews > .review')[index].querySelector(".leftCol > .reviewer").getElementsByTagName('dd')[0].textContent;
-            }, i);
-            reviews.push(obj);
+            // Iterate through the reviews section and create a review object
+            for (let loopCounter = 0; loopCounter < noOfReviewsOnCurrentPage; loopCounter++) {
+                let singleReviewObject = {};
+                let commentObject = {};
+
+                // Comment title and text as one object
+                commentObject.title = await page.evaluate(function (index) {
+                    return document.querySelectorAll('#customerReviews > .review > .rightCol > blockquote')[index].querySelector('h6').textContent;
+                }, loopCounter);
+
+                commentObject.text = await page.evaluate(function (index) {
+                    return document.querySelectorAll('#customerReviews > .review > .rightCol > blockquote')[index].querySelector('p').textContent;
+                }, loopCounter);
+
+                // assigning as a single review property
+                singleReviewObject.comment = commentObject;
+
+                // fetching rating for current review object
+                singleReviewObject.rating = await page.evaluate(function (index) {
+                    return document.querySelectorAll('#customerReviews > .review')[index].querySelector(".leftCol > .itemReview > dd > .itemRating > strong").textContent;
+                }, loopCounter);
+
+                // fetching review date for current review object
+                singleReviewObject.review_date = await page.evaluate(function (index) {
+                    return document.querySelectorAll('#customerReviews > .review')[index].querySelector(".leftCol > .reviewer").getElementsByTagName('dd')[1].textContent;
+                }, loopCounter);
+
+                // fetching reviewer name for current review object
+                singleReviewObject.reviewer = await page.evaluate(function (index) {
+                    return document.querySelectorAll('#customerReviews > .review')[index].querySelector(".leftCol > .reviewer").getElementsByTagName('dd')[0].textContent;
+                }, loopCounter);
+
+                // pushing this single object to main reviews array
+                reviews.push(singleReviewObject);
+            }
+
+            // Check if next button exists
+            nextButtonExists = await page.evaluate(function () {
+                return document.querySelector("[title='Next']") != null && document.querySelector("[title='Next']").className === "";
+            });
+
+            // if next button exists, fetch it's url
+            if (nextButtonExists) {
+                changedUrl = await page.evaluate(function () {
+                    return document.querySelector("[title='Next']").href;
+                });
+            }
         }
+        while (nextButtonExists);
 
-        // close the page and phantom instance and return the reviews
+        // close the page and exit the phantom instance
         await page.close();
         await instance.exit();
+
+        // Return the reviews
         return reviews;
     } catch (error) {
         console.log(error);
+        return 'An Error occured while fetching the reviews'
     }
 }
 
