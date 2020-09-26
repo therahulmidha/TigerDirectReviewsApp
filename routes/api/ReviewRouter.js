@@ -1,14 +1,14 @@
 // Module dependencies
 const router = require('express').Router();
 const Joi = require('joi');
-const ReviewService = require('../../service/ReviewService')
+const ReviewService = require('../../service/ReviewService');
 
 /**
  * @description GET all reviews for a given tigerdirect url
  * @param  string '/'
  * @param  function 'request response middleware function'
  */
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
     try {
         // Validate request body for url presence
         const { error } = validateRequestBody(req.body);
@@ -29,17 +29,13 @@ router.get('/', async (req, res) => {
 
         // If no reviews were found
         if (data.length === 0) {
-            return res.status(400).json({ message: 'No reviews found', data: null });
+            return res.status(404).json({ message: 'No reviews found', data: null });
         }
 
         // Return retrieved reviews
-        return res.json({ message: `Found ${data.length} reviews`, data });
+        return res.status(200).json({ message: `Found ${data.length} reviews`, data });
     } catch (error) {
-        // Internal Server Error
-        return res.status(500).json({
-            message: 'Internal Server Error',
-            data: null
-        })
+        next(error);
     }
 });
 

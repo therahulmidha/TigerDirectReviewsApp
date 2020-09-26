@@ -2,7 +2,7 @@
 const phantom = require("phantom");
 
 /**
- * @description Crawl reviews from a tigerdirect url
+ * @description Crawl reviews from a tigerdirect review page
  * @param  string url
  */
 async function getReviews(url) {
