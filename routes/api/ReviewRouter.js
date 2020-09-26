@@ -1,21 +1,32 @@
-// Module dependencies
+/**
+ * Project Name : TigerDirectReviewsApp
+ * @author  Rahul Midha
+ * @date    Sept 26, 2020
+ * 
+ * Description
+ * ----------------------------------------------------------------------------------- 
+ * Route to retrieve reviews for a tigerdirect review page
+ * This module has following routes:
+ * 1. / {GET}- To Get list of reviews for a given url
+ * -----------------------------------------------------------------------------------
+ */
 const router = require('express').Router();
 const Joi = require('joi');
 const ReviewService = require('../../service/ReviewService');
+const { logger } = require('../../startup/logging');
+const messages = require('../../common/messages');
 
 /**
- * @description GET all reviews for a given tigerdirect url
- * @param  string '/'
- * @param  function 'request response middleware function'
+ * GET all reviews for a given tigerdirect url
+ * @param  {string} '/'
+ * @param  {function} 'request response middleware function'
  */
 router.get('/', async (req, res, next) => {
     try {
         // Validate request body for url presence
         const { error } = validateRequestBody(req.body);
-
-        // If errors found
+        // throw new Error('samepl')
         if (error) {
-            // Return error message
             return res.status(400).json({ message: error.details[0].message, data: null });
         }
 
@@ -29,7 +40,7 @@ router.get('/', async (req, res, next) => {
 
         // If no reviews were found
         if (data.length === 0) {
-            return res.status(404).json({ message: 'No reviews found', data: null });
+            return res.status(404).json({ message: messages.NO_REVIEWS_FOUND_ON_VALID_PAGE, data: null });
         }
 
         // Return retrieved reviews
@@ -40,8 +51,8 @@ router.get('/', async (req, res, next) => {
 });
 
 /**
- * @description Validate request body
- * @param  {} data
+ * Validate request body
+ * @param  {object} data
  */
 const validateRequestBody = (data) => {
     const schema = Joi.object({

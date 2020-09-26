@@ -1,24 +1,28 @@
-const winston = require('winston');
+/**
+ * Project Name : TigerDirectReviewsApp
+ * @author  Rahul Midha
+ * @date    Sept 26, 2020
+ * 
+ * Description
+ * ----------------------------------------------------------------------------------- 
+ * Module for configuring logging and common error handling 
+ * -----------------------------------------------------------------------------------
+ */
+const { createLogger, transports, format } = require('winston');
 const morgan = require('morgan');
 require('express-async-errors');
-module.exports = function (app) {
+let date = new Date();
+let fileName = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + "-";
+const logger = createLogger({
+    transports: [
+        new transports.File({ filename: `./logs/${fileName}ERROR.log`, level: 'error',format: format.combine(format.timestamp(), format.json()) }),
+        new transports.File({ filename: `./logs/${fileName}INFO.log`, level: 'info',format: format.combine(format.timestamp(), format.json()) }),
+        new transports.Console({ level: 'error', format: format.combine(format.timestamp(), format.json()) }),
+        new transports.Console({ level: 'info', format: format.combine(format.timestamp(), format.json()) }),
+    ],
+});
 
-
-    global.logger = winston.createLogger({
-        format: winston.format.json(),
-        defaultMeta: { service: 'user-service' },
-        transports: [
-            //
-            // - Write all logs with level `error` and below to `error.log`
-            // - Write all logs with level `info` and below to `combined.log`
-            //
-            new winston.transports.File({ filename: './logs/error.log', level: 'error' }),
-            new winston.transports.File({ filename: './logs/info.log', level: 'info' }),
-            new winston.transports.File({ filename: './logs/debug.log', level: 'debug' }),
-            // new winston.transports.File({ filename: 'combined.log' }),
-        ],
-    });
-
+function initializeLogger(app) {
     process.on('uncaughtException', (ex) => {
         logger.error(ex.message, ex);
         process.exit(1);
@@ -29,9 +33,11 @@ module.exports = function (app) {
         process.exit(1);
     });
 
-
     // Enable morgan response logger for development env
     if (app.get("env") === "development") {
         app.use(morgan("dev"));
     }
 }
+
+module.exports.initializeLogger = initializeLogger;
+module.exports.logger = logger;

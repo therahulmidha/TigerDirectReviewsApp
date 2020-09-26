@@ -4,7 +4,9 @@
   "description": "App containing api to crawl reviews from website Tigerdirect",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index"
+    "start": "nodemon index",
+    "clean": "rmdir /Q /S logs",
+    "production": "npm run clean && npm i && setx NODE_ENV production && cls && node index"
   },
   "keywords": [
     "nodejs",
@@ -13,9 +15,11 @@
   ],
   "author": "Rahul Midha",
   "dependencies": {
+    "compression": "^1.7.4",
     "config": "^3.3.1",
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
+    "helmet": "^4.1.1",
     "joi": "^17.2.1",
     "phantom": "^6.3.0",
     "winston": "^3.3.3"

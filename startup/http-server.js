@@ -1,9 +1,20 @@
+/**
+ * Project Name : TigerDirectReviewsApp
+ * @author  Rahul Midha
+ * @date    Sept 26, 2020
+ * 
+ * Description
+ * ----------------------------------------------------------------------------------- 
+ * Module for starting http server based on environment configurations  
+ * -----------------------------------------------------------------------------------
+ */
 const config = require('config');
+const { logger } = require('../startup/logging');
+
 module.exports = function (app) {
-    // Http server
     const ip = config.get("server.ip");
     const port = process.env.PORT || config.get("server.port");
     app.listen(port, ip, () => {
-        console.log(`Server started on http://${ip}:${port}`);
+        logger.info(`Server started on http://${ip}:${port}`);
     });
 }
