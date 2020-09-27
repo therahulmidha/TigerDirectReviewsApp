@@ -1,4 +1,3 @@
-const helmet = require('helmet');
 /**
  * Project Name : TigerDirectReviewsApp
  * @author  Rahul Midha

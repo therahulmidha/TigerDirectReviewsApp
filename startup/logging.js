@@ -9,7 +9,7 @@
  * -----------------------------------------------------------------------------------
  */
 
-const morgan = require('morgan');
+
 const winston = require('winston');
 const { createLogger, transports, format } = require('winston');
 require('express-async-errors');
@@ -41,6 +41,6 @@ module.exports = function (app) {
 
     // Enable morgan response logger for development env
     if (app.get("env") === "development") {
-        app.use(morgan("dev"));
+        app.use(require('morgan')("dev"));
     }
 }
