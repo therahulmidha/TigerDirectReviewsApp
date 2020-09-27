@@ -4,9 +4,10 @@
   "description": "App containing api to crawl reviews from website Tigerdirect",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index",
-    "clean": "rmdir /Q /S logs",
-    "production": "npm run clean && npm i && setx NODE_ENV production && cls && node index"
+    "dev": "nodemon index",
+    "clean": "if exist /logs rmdir /Q /S logs",
+    "production": "npm i && cls && pm2 start index.js --name tigerdirectreviewsapp",
+    "stop": "pm2 stop tigerdirectreviewsapp"
   },
   "keywords": [
     "nodejs",
@@ -22,6 +23,7 @@
     "helmet": "^4.1.1",
     "joi": "^17.2.1",
     "phantom": "^6.3.0",
+    "pm2": "^4.4.1",
     "winston": "^3.3.3"
   },
   "devDependencies": {
