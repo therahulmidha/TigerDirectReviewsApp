@@ -8,21 +8,27 @@
  * Module for configuring logging and common error handling 
  * -----------------------------------------------------------------------------------
  */
-const { createLogger, transports, format } = require('winston');
-const morgan = require('morgan');
-require('express-async-errors');
-let date = new Date();
-let fileName = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + "-";
-const logger = createLogger({
-    transports: [
-        new transports.File({ filename: `./logs/${fileName}ERROR.log`, level: 'error',format: format.combine(format.timestamp(), format.json()) }),
-        new transports.File({ filename: `./logs/${fileName}INFO.log`, level: 'info',format: format.combine(format.timestamp(), format.json()) }),
-        new transports.Console({ level: 'error', format: format.combine(format.timestamp(), format.json()) }),
-        new transports.Console({ level: 'info', format: format.combine(format.timestamp(), format.json()) }),
-    ],
-});
 
-function initializeLogger(app) {
+const morgan = require('morgan');
+const winston = require('winston');
+const { createLogger, transports, format } = require('winston');
+require('express-async-errors');
+
+module.exports = function (app) {
+
+    const date = new Date();
+    const fileName = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + "-";
+    const logger = createLogger({
+        transports: [
+            new transports.File({ filename: `./logs/${fileName}ERROR.log`, level: 'error', format: format.combine(format.timestamp(), format.json()) }),
+            new transports.File({ filename: `./logs/${fileName}INFO.log`, level: 'info', format: format.combine(format.timestamp(), format.json()) }),
+            new transports.Console({ level: 'error', format: format.combine(format.timestamp(), format.json()) }),
+            new transports.Console({ level: 'info', format: format.combine(format.timestamp(), format.json()) }),
+        ],
+    });
+
+    winston.add(logger);
+
     process.on('uncaughtException', (ex) => {
         logger.error(ex.message, ex);
         process.exit(1);
@@ -38,6 +44,3 @@ function initializeLogger(app) {
         app.use(morgan("dev"));
     }
 }
-
-module.exports.initializeLogger = initializeLogger;
-module.exports.logger = logger;

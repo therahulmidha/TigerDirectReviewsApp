@@ -9,7 +9,7 @@
  * -----------------------------------------------------------------------------------
  */
 const config = require('config');
-const { logger } = require('../startup/logging');
+const logger = require('winston');
 
 module.exports = function (app) {
     const ip = config.get("server.ip");

@@ -18,7 +18,7 @@
  * -----------------------------------------------------------------------------------
  */
 const phantom = require("phantom");
-const { logger } = require('../startup/logging');
+const logger = require('winston');
 const messages = require('../common/messages');
 
 /**
@@ -122,9 +122,9 @@ async function getComments(page, reviewIndex) {
         title: await page.evaluate(function (index) {
             return document.querySelectorAll('#customerReviews > .review > .rightCol > blockquote')[index].querySelector('h6').textContent;
         }, reviewIndex),
-        text: await page.evaluate(function (index) {
+        text: (await page.evaluate(function (index) {
             return document.querySelectorAll('#customerReviews > .review > .rightCol > blockquote')[index].querySelector('p').textContent;
-        }, reviewIndex)
+        }, reviewIndex)).replace(/\n/g, '')
     };
 }
 

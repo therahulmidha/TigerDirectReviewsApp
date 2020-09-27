@@ -12,10 +12,11 @@
  */
 const router = require('express').Router();
 const Joi = require('joi');
-const ReviewService = require('../../service/ReviewService');
-const { logger } = require('../../startup/logging');
+const ReviewService = require('../../service/reviewService');
+const logger = require('winston');
 const messages = require('../../common/messages');
-
+const mcache = require('memory-cache');
+const config = require('config');
 /**
  * GET all reviews for a given tigerdirect url
  * @param  {string} '/'
@@ -30,21 +31,40 @@ router.get('/', async (req, res, next) => {
             return res.status(400).json({ message: error.details[0].message, data: null });
         }
 
-        // Get reviews for the provided url
-        let data = await ReviewService.getReviews(req.body.url);
+        let key = 'cached_url_' + req.body.url;
+        
+        // find if the url in request body was cached
+        let cachedResponse = mcache.get(key);
 
-        // If data not object, it means url was not correct
-        if (typeof data != "object") {
-            return res.status(400).json({ message: data, data: null });
+        // if cached, return the response
+        if (cachedResponse) {
+            return res.status(200).json(cachedResponse);
+        } else {
+
+            // Get reviews for the provided url
+            let data = await ReviewService.getReviews(req.body.url);
+
+            // If data not object, it means url was not correct
+            if (typeof data != "object") {
+                return res.status(400).json({ message: data, data: null });
+            }
+
+            // If no reviews were found
+            if (data.length === 0) {
+                return res.status(404).json({ message: messages.NO_REVIEWS_FOUND_ON_VALID_PAGE, data: null });
+            }
+
+            // Preparing the response to be cached and returned
+            let responseOk = { message: `Found ${data.length} reviews`, data };
+            mcache.put(key, responseOk, config.get('cache_expiration_interval'));
+
+            logger.info(`Created cache entry for url: ${req.body.url}`)
+
+            // Returning the 200 response
+            return res.status(200).json(responseOk);
         }
 
-        // If no reviews were found
-        if (data.length === 0) {
-            return res.status(404).json({ message: messages.NO_REVIEWS_FOUND_ON_VALID_PAGE, data: null });
-        }
 
-        // Return retrieved reviews
-        return res.status(200).json({ message: `Found ${data.length} reviews`, data });
     } catch (error) {
         next(error);
     }

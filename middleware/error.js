@@ -8,7 +8,7 @@
  * Middleware function to handles errors in request-response cycle 
  * -----------------------------------------------------------------------------------
  */
-const { logger } = require('../startup/logging');
+const logger = require('winston');
 const messages = require('../common/messages');
 module.exports = function (err, req, res, next) {
     // Log the exception

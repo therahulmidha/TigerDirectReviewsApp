@@ -10,7 +10,7 @@
  */
 const { json } = require('express');
 const error = require('../middleware/error');
-const ReviewRouter = require('../routes/api/ReviewRouter');
+const ReviewRouter = require('../routes/api/reviewRouter');
 module.exports = function (app) {
     // Middleware to allow body data to be sent in request
     app.use(json());
